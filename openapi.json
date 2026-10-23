@@ -1,0 +1,237 @@
+
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Flock Energy API",
+    "version": "1.0.0",
+    "description": "An API that provides meter search, meter details, energy readings, and location information from the Urja Meter Ops portal."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Check API health",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "The API is running",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Flock Energy API is running"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meters": {
+      "get": {
+        "summary": "Search meters",
+        "operationId": "searchMeters",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            },
+            "description": "Search text used to filter meters"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "description": "Page number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meter search results, including pagination information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "meterId": { "type": "string" },
+                          "serialNo": { "type": "string" },
+                          "make": { "type": "string" },
+                          "phaseType": { "type": "string" },
+                          "installStatus": { "type": "string" },
+                          "dtCode": { "type": "string" }
+                        }
+                      }
+                    },
+                    "total": { "type": "integer" },
+                    "page": { "type": "integer" },
+                    "pageSize": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meters/{meterId}": {
+      "get": {
+        "summary": "Get meter details and hierarchy",
+        "operationId": "getMeterDetails",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/meterId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meter details and hierarchy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeterDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meters/{meterId}/energy": {
+      "get": {
+        "summary": "Get meter energy readings",
+        "operationId": "getMeterEnergy",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/meterId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Energy readings for the meter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "timestamp": { "type": "string" },
+                          "kwh": { "type": "string" },
+                          "kvah": { "type": "string" },
+                          "voltR": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meters/{meterId}/location": {
+      "get": {
+        "summary": "Get meter geographic location",
+        "operationId": "getMeterLocation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/meterId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meter coordinates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "latitude": { "type": "string" },
+                        "longitude": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "meterId": {
+        "name": "meterId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Unique identifier of the meter"
+      }
+    },
+    "schemas": {
+      "MeterDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "details": {
+            "$ref": "#/components/schemas/MeterDetails"
+          },
+          "hierarchy": {
+            "$ref": "#/components/schemas/MeterHierarchy"
+          }
+        }
+      },
+      "MeterDetails": {
+        "type": "object",
+        "properties": {
+          "meterId": { "type": "string" },
+          "serialNo": { "type": "string" },
+          "make": { "type": "string" },
+          "phaseType": { "type": "string" },
+          "installStatus": { "type": "string" },
+          "installationType": { "type": "string" }
+        }
+      },
+      "MeterHierarchy": {
+        "type": "object",
+        "properties": {
+          "zone": { "type": "string" },
+          "circle": { "type": "string" },
+          "division": { "type": "string" },
+          "subdivision": { "type": "string" },
+          "subStation": { "type": "string" },
+          "feeder": { "type": "string" },
+          "dt": { "type": "string" }
+        }
+      }
+    }
+  }
+}
